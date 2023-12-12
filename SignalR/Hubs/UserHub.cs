@@ -5,7 +5,8 @@ namespace SignalR.Hubs;
 public class UserHub : Hub
 {
     // Counts the total views that a Web page has
-    public int TotalViews { get; set; } = 0;
+    public static int TotalViews { get; set; } = 0;
+    public static int TotalUsers { get; set; } = 0;
 
     /// <summary>
     /// Increments the TotalViews variable.
@@ -19,5 +20,17 @@ public class UserHub : Hub
         await Clients.All.SendAsync("updateTotalViews", TotalViews);
     }
 
+    public override Task OnConnectedAsync()
+    {
+        TotalUsers++;
+        Clients.All.SendAsync("updateTotalUsers", TotalUsers).GetAwaiter().GetResult();
+        return base.OnConnectedAsync();
+    }
 
+    public override Task OnDisconnectedAsync(Exception? exception)
+    {
+        TotalUsers--;
+        Clients.All.SendAsync("updateTotalUsers", TotalUsers).GetAwaiter().GetResult();
+        return base.OnDisconnectedAsync(exception);
+    }
 }
